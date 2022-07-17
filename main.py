@@ -146,7 +146,6 @@ class ClientDB:
                     print('Такого клиента не существует.')
                 print()
 
-
         if first_name:
             with self.conn.cursor() as cur:
                 cur.execute(''' select c.id, c.first_name, c.last_name, c.email, p.phone_number from client c
@@ -156,14 +155,13 @@ class ClientDB:
                             ''', (first_name,)
                             )
                 res = cur.fetchall()
-                dict_res = {res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for ind in range(len(res))}
+                dict_res = {
+                    res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for
+                    ind in range(len(res))}
                 print(f'Клиенты с именем: {first_name}:')
                 for key_ in dict_res:
                     print(*key_, [*dict_res[key_]])
-
-
                 print()
-
 
         if last_name:
             with self.conn.cursor() as cur:
@@ -174,7 +172,9 @@ class ClientDB:
                             ''', (last_name,)
                             )
                 res = cur.fetchall()
-                dict_res = {res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for ind in range(len(res))}
+                dict_res = {
+                    res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for
+                    ind in range(len(res))}
                 print(f'Клиенты с фамилией: {last_name}:')
                 for key_ in dict_res:
                     print(*key_, [*dict_res[key_]])
@@ -189,7 +189,9 @@ class ClientDB:
                             ''', (email,)
                             )
                 res = cur.fetchall()
-                dict_res = {res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for ind in range(len(res))}
+                dict_res = {
+                    res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for
+                    ind in range(len(res))}
                 print(f'Клиент с e-mail: {email}:')
                 for key_ in dict_res:
                     print(*key_, [*dict_res[key_]])
@@ -204,17 +206,20 @@ class ClientDB:
                             ''', (phone,)
                             )
                 res = cur.fetchall()
-                dict_res = {res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for ind in range(len(res))}
+                dict_res = {
+                    res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]] for
+                    ind in range(len(res))}
                 print(f'Клиент с номером телефона: {phone}:')
                 for key_ in dict_res:
                     print(*key_, [*dict_res[key_]])
                 print()
 
     def print_all(self, *args):
-        ''' Печатаем всех в разрезе количество на странице
-        1 аргумент: \t количество уникальных клиентов на первой странице
-        2 аргумент: \t шаг (перебор по страницам)
-        Пример: \tнапечатать клиентов 3 и 4: print_all(2, 2)
+        ''' Печатаем клиентов в разрезе количество на странице
+        По дефолту печатается первые 10 клиентов
+        1 аргумент: \t количество уникальных клиентов на странице
+        2 аргумент: \t шаг - номер страницы (перебор по страницам)
+        Пример: \tнапечатать клиентов с 5 по 8: print_all(2, 2)
         Пример: \tнапечатать всех клиентов: print_all()
         '''
         with self.conn.cursor() as cur:
@@ -224,20 +229,20 @@ class ClientDB:
                                 where c.id between %s and %s
                                 group by c.id, c.first_name, c.last_name, c.email, p.phone_number
                                 order by id
-                                ;''',(args[0], args[1])
+                                ;''', (args[0] * args[1] - args[0] + 1, args[0] * args[1])
                             )
             else:
                 cur.execute('''select c.id, c.first_name, c.last_name, c.email, p.phone_number from client c
                                 full join phone p on c.id = p.client_id
+                                where c.id between 1 and 10
                                 group by c.id, c.first_name, c.last_name, c.email, p.phone_number
                                 order by id;
                             ''')
 
-
             res = cur.fetchall()
             dict_res = {res[ind][0:-1]: [res[index][-1] for index in range(len(res)) if res[ind][0] == res[index][0]]
                         for ind in range(len(res))}
-            print(f'Клиенты: с {args[0]} по {args[1]}' if args else 'Все клиенты:')
+            print(f'Клиентов {args[0]} на странице {args[1]}' if args else 'Первые 10 клиентов:')
             for key_ in dict_res:
                 print(*key_, [*dict_res[key_]])
             print()
@@ -280,14 +285,18 @@ request_db.find_client(last_name='Иванов')
 request_db.find_client(email='Petr@mail.ru')
 request_db.find_client(phone='+70000000022')
 
-request_db.add_client('Иван', 'Кук', 'IvanK@mail.ru', '+800000')
-request_db.add_client('Иван', 'Пук', 'IvanP@mail.ru', )
-request_db.add_client('Иван', 'Нук', 'IvanN@mail.ru', )
-request_db.add_client('Иван', 'Тук', 'IvanT@mail.ru', )
+request_db.add_client('Иван', 'Кук', '2IvanK@mail.ru', '+800000')
+request_db.add_client('Иван', 'Пук', '3IvanP@mail.ru', )
+request_db.add_client('Иван', 'Нук', '4IvanN@mail.ru', )
+request_db.add_client('Иван', 'Тук', '5IvanT@mail.ru', )
+
+request_db.add_client('1Иван', 'Кук', '7IvanK@mail.ru', '+880000')
+request_db.add_client('1Иван', 'Пук', '8IvanP@mail.ru', '+888000', '+889000')
+request_db.add_client('1Иван', 'Нук', '9IvanN@mail.ru', '+890000', '+891000', '+980000', '+788000')
+request_db.add_client('1Иван', 'Тук', '0IvanT@mail.ru', )
 
 print(request_db.print_all.__doc__)
 request_db.print_all()
-request_db.print_all(5,8)
+request_db.print_all(4, 3)
 
 request_db.close_connect()
-
